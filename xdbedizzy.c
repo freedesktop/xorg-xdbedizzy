@@ -72,7 +72,8 @@ static Bool              paused        = False;
 static Bool              manual_paused = False;
 static int               xp_event_base,         /* XpExtension even base   */
                          xp_error_base;         /* XpExtension error base  */
-static long              dpi           = 0L;    /* Current page resolution */
+static long              dpi_x         = 0L,    /* Current page resolution */
+                         dpi_y         = 0L;    
 static int               numPages      = 5,     /* Numer of pages to print */
                          currNumPages  = 0;     /* Current page number */
 static Bool              doPrint       = False; /* Print to printer ? */
@@ -648,7 +649,7 @@ int main(int argc, char *argv[])
         XpSetContext(dpy, pcontext);
 
         /* Get default printer reolution */   
-        if (XpuGetResolution(dpy, pcontext, &dpi) != 1) {
+        if (XpuGetResolution(dpy, pcontext, &dpi_x, &dpi_y) != 1) {
             fprintf(stderr, "%s: No default resolution for printer '%s'.\n",
             ProgramName, printername);
             XpuClosePrinterDisplay(dpy, pcontext);
@@ -700,7 +701,7 @@ int main(int argc, char *argv[])
         winrect.width  = 400;
         winrect.height = 400;
         
-        dpi = 100L; /* hack-style - but enougth for our needs */
+        dpi_x = dpi_y = 100L; /* hack-style - but enougth for our needs */
     }
     
     if (do_db) {
@@ -765,7 +766,7 @@ int main(int argc, char *argv[])
 
     /* Create GCs, one per color (to avoid pipeline flushing
      * when the GC is changed) */
-    gcvals.line_width = (8 * dpi) / 100L; /* scale line with DPI */
+    gcvals.line_width = (8L * ((dpi_x+dpi_y)/2L)) / 100L; /* scale line with DPI */
     gcvals.cap_style  = CapRound;
 #define CREATECOLORGC(cl) (gcvals.foreground = (cl), \
                            XCreateGC(dpy, win, GCForeground | GCLineWidth | GCCapStyle, &gcvals))
