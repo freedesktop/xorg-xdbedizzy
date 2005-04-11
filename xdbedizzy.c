@@ -52,6 +52,7 @@
 /* Turn a NULL pointer string into an empty string */
 #define NULLSTR(x) (((x)!=NULL)?(x):(""))
 #define Log(x) { if(verbose) printf x; }
+#define Msg(x) { printf x; }
 
 /* Global variables */
 static char             *ProgramName   = NULL;
@@ -421,25 +422,25 @@ void main_loop(void)
                 case ButtonPress:
                     switch (event.xbutton.button) {
                         case 1:
-                            printf("ButtonPress: faster: %g\n", delta);
+                            Msg(("ButtonPress: faster: %g\n", delta));
                             delta += 0.005;
                             break;
                         case 2:
-                            printf("ButtonPress: slower: %g\n", delta);
+                            Msg(("ButtonPress: slower: %g\n", delta));
                             delta += -0.005;
                             break;
                         case 3:
                             if (manual_paused) {
-                                printf("ButtonPress: manual resume.\n");
+                                Msg(("ButtonPress: manual resume.\n"));
                                 manual_paused = False;
                             } else {
-                                printf("ButtonPress: manual pause.\n");
+                                Msg(("ButtonPress: manual pause.\n"));
                                 manual_paused = True;
                             }
                     }
                     break;
                 case KeyPress:
-                    printf("KeyPress: done.\n");
+                    Msg(("KeyPress: done.\n"));
                     done = True;
                     break;
                 case ConfigureNotify:
@@ -782,10 +783,33 @@ int main(int argc, char *argv[])
     main_loop();
 
     if (doPrint) {
+        char *scr;
+        
         /* End the print job - the final results are sent by the X print
          * server to the spooler sub system.
          */
         Log(("finishing print job.\n"));
+
+        /* Job completed, check if there are any messages from the spooler command */
+        scr = XpGetOneAttribute(dpy, pcontext, XPJobAttr, "xp-spooler-command-results");
+        if( scr )
+        {
+          if( strlen(scr) > 0 )
+          {
+            const char *msg = XpuCompoundTextToXmb(dpy, scr);
+            if( msg )
+            {
+              Msg(("Spooler command returned:\n%s", msg));
+              XpuFreeXmbString(msg);
+            }
+            else
+            {
+              Msg(("Spooler command returned (unconverted):\n%s", scr));
+            }
+          }
+
+          XFree((void *)scr);
+        }
 
         if (toFile) {
            if (XpuWaitForPrintFileChild(printtofile_handle) != XPGetDocFinished) {
