@@ -34,3 +34,4 @@ xdbedizzy_SOURCES =	\
 dist_man_MANS = \
         xdbedizzy.man
 
+EXTRA_DIST = xdbedizzy.sgml
