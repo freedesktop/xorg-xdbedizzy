@@ -71,6 +71,7 @@ static float             delta         = 0.05;
 static float             speed         = 20.0;
 static Bool              paused        = False;
 static Bool              manual_paused = False;
+#ifdef USE_XPRINT
 static int               xp_event_base,         /* XpExtension even base   */
                          xp_error_base;         /* XpExtension error base  */
 static long              dpi_x         = 0L,    /* Current page resolution */
@@ -78,6 +79,7 @@ static long              dpi_x         = 0L,    /* Current page resolution */
 static int               numPages      = 5,     /* Numer of pages to print */
                          currNumPages  = 0;     /* Current page number */
 static Bool              doPrint       = False; /* Print to printer ? */
+#endif
 
 /* Default values for unspecified command line arguments */
 static char             *display_name  = NULL;
@@ -93,10 +95,12 @@ static VisualID          visid         = 0;
 static const char *help_message[] = {
 "  where options include:",
 "    -display host:dpy       X server connection to use.",
+#ifdef USE_XPRINT
 "    -print                  Use printer instead of video card for output.",
 "    -printer printername    Name of printer to use.",
 "    -printfile printername  Output file for print job.",
 "    -numpages count         Number of pages to print.",
+#endif
 "    -delta dlt              Rotate <dlt> per frame (video) or page (printer).",
 "    -class classname        Class of visual to use.",
 "    -depth n                Depth of visual to use.",
@@ -306,7 +310,11 @@ void main_loop(void)
 
         /* When we print we only render on Expose events and bump
          * |rotation| when the page number changes */                 
-        if (!paused && !manual_paused && !doPrint) {
+        if (!paused && !manual_paused
+#ifdef USE_XPRINT
+	    && !doPrint
+#endif
+	    ) {
             pending = XEventsQueued(dpy, QueuedAfterFlush);
             if (pending == 0) {
                 do {
@@ -329,6 +337,7 @@ void main_loop(void)
 
         XNextEvent(dpy, &event);
 
+#ifdef USE_XPRINT
         /* XpExtension event ? */
         if( doPrint && 
             (event.type == xp_event_base+XPPrintNotify) )
@@ -379,6 +388,7 @@ void main_loop(void)
             }
         }
         else
+#endif
         {
             switch (event.type) {
                 case MapNotify:
@@ -412,10 +422,11 @@ void main_loop(void)
                      * display, the Xprint server is non-interactive and
                      * therefore cannot create extra Expose events caused
                      * by user input) */
-                    if (!doPrint) {
+#ifdef USE_XPRINT
+                    if (!doPrint)
+#endif
                       while (XCheckTypedEvent(dpy, Expose, &event))
                         ;
-                    }
 
                     redraw();
                     break;
@@ -482,6 +493,7 @@ int main(int argc, char *argv[])
             }
             display_name = argv[i];
         }
+#ifdef USE_XPRINT
         else if (!strcmp(arg, "-print")) {
             doPrint = True;
         }
@@ -506,6 +518,7 @@ int main(int argc, char *argv[])
                 usage();
             doPrint = True;
         }
+#endif
         else if (!strcmp(arg, "-delta")) {
             if (++i >= argc)
                 usage();
@@ -590,10 +603,12 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifdef USE_XPRINT
     /* Display and printing at the same time not implemented */
     if (doPrint && display_name) {
         usage();
     }
+#endif
 
     if (use_threadsafe_api) {
         if (!XInitThreads()) {
@@ -601,7 +616,8 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-   
+
+#ifdef USE_XPRINT
     if (doPrint) {
         plist = XpuGetPrinterList(printername, &plist_count);
 
@@ -679,6 +695,7 @@ int main(int argc, char *argv[])
         /* Obtain some info about page geometry */
         XpGetPageDimensions(dpy, pcontext, &dummy, &dummy, &winrect);
     }
+#endif
     else
     {
         dpy = XOpenDisplay(display_name);
@@ -701,8 +718,10 @@ int main(int argc, char *argv[])
         winrect.y      = 10;
         winrect.width  = 400;
         winrect.height = 400;
-        
+
+#ifdef USE_XPRINT
         dpi_x = dpi_y = 100L; /* hack-style - but enougth for our needs */
+#endif
     }
     
     if (do_db) {
@@ -767,7 +786,12 @@ int main(int argc, char *argv[])
 
     /* Create GCs, one per color (to avoid pipeline flushing
      * when the GC is changed) */
+#ifdef USE_XPRINT
     gcvals.line_width = (8L * ((dpi_x+dpi_y)/2L)) / 100L; /* scale line with DPI */
+#else
+    gcvals.line_width = 8L;
+#endif
+    
     gcvals.cap_style  = CapRound;
 #define CREATECOLORGC(cl) (gcvals.foreground = (cl), \
                            XCreateGC(dpy, win, GCForeground | GCLineWidth | GCCapStyle, &gcvals))
@@ -782,6 +806,7 @@ int main(int argc, char *argv[])
 
     main_loop();
 
+#ifdef USE_XPRINT
     if (doPrint) {
         char *scr;
         
@@ -825,6 +850,7 @@ int main(int argc, char *argv[])
         XpuFreePrinterList(plist);
     }
     else
+#endif
     {
         XDestroyWindow(dpy, win);
         XCloseDisplay(dpy);
