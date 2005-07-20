@@ -46,12 +46,12 @@ AM_CONDITIONAL([USE_XPRINT], [test "$use_xprint" = yes])
 # Checks for pkg-config packages
 
 if test x$use_xprint = xyes ; then
-   PKG_CHECK_MODULES(DEP, xext xprintutil)
+   PKG_CHECK_MODULES(XDBEDIZZY, xext xprintutil)
 else
-   PKG_CHECK_MODULES(DEP, xext)
+   PKG_CHECK_MODULES(XDBEDIZZY, xext)
 fi
 
-AC_SUBST(DEP_CFLAGS)
-AC_SUBST(DEP_LIBS)
+AC_SUBST(XDBEDIZZY_CFLAGS)
+AC_SUBST(XDBEDIZZY_LIBS)
 
 AC_OUTPUT([Makefile])
