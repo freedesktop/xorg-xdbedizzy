@@ -31,7 +31,7 @@ endif
 xdbedizzy_SOURCES =	\
         xdbedizzy.c
 
-dist_man_MANS = \
+dist_man1_MANS = \
         xdbedizzy.man
 
 EXTRA_DIST = xdbedizzy.sgml
