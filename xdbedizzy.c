@@ -40,7 +40,9 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/Xdbe.h>
+#ifdef USE_XPRINT
 #include <X11/XprintUtil/xprintutil.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -59,7 +61,9 @@ static char             *ProgramName   = NULL;
 static Display          *dpy           = NULL;
 static Screen           *screen        = NULL;
 static int               screennum     = -1;
+#ifdef USE_XPRINT
 static XPContext         pcontext      = None; /* Xprint context */
+#endif
 static XRectangle        winrect       = { 0 };
 static unsigned long     c_black, c_pink, c_green, c_orange, c_blue;
 static Window            win           = None;
@@ -475,8 +479,10 @@ int main(int argc, char *argv[])
     void                *printtofile_handle = NULL; /* "context" when printing to file */
     const char          *printername        = NULL;  /* printer to query */
     const char          *toFile             = NULL;  /* output file (instead of printer) */
+#ifdef USE_XPRINT
     XPPrinterList        plist              = NULL;  /* list of printers */
     int                  plist_count;                /* number of entries in |plist|-array */
+#endif
     unsigned short       dummy;
     Bool                 use_threadsafe_api = True;
 
@@ -712,7 +718,9 @@ int main(int argc, char *argv[])
 
         screen = XDefaultScreenOfDisplay(dpy);
         screennum = XScreenNumberOfScreen(screen);
+#ifdef USE_XPRINT
         pcontext = None;
+#endif
 
         winrect.x      = 10;
         winrect.y      = 10;
