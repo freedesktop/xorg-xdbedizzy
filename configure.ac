@@ -46,7 +46,7 @@ AM_CONDITIONAL([USE_XPRINT], [test "$use_xprint" = yes])
 # Checks for pkg-config packages
 
 if test x$use_xprint = xyes ; then
-   PKG_CHECK_MODULES(XDBEDIZZY, xext xprintutil xau)
+   PKG_CHECK_MODULES(XDBEDIZZY, xext xprintutil xp xau)
 else
    PKG_CHECK_MODULES(XDBEDIZZY, xext)
 fi
