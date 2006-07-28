@@ -46,7 +46,7 @@ else
   xprintmodules=""
 fi
 
-PKG_CHECK_MODULES(XDBEDIZZY, xext $xprintmodules)
+PKG_CHECK_MODULES(XDBEDIZZY, $xprintmodules xext x11)
 
 AC_SUBST(XDBEDIZZY_CFLAGS)
 AC_SUBST(XDBEDIZZY_LIBS)
