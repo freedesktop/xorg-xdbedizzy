@@ -705,8 +705,8 @@ int main(int argc, char *argv[])
         /* Obtain some info about page geometry */
         XpGetPageDimensions(dpy, pcontext, &dummy, &dummy, &winrect);
     }
-#endif
     else
+#endif
     {
         dpy = XOpenDisplay(display_name);
         if (dpy == NULL) {
