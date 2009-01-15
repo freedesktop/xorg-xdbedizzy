@@ -18,3 +18,7 @@ stamp-h1
 xdbedizzy
 xdbedizzy.1
 *~
+*.o
+xdbedizzy-*.tar.*
+ChangeLog
+tags

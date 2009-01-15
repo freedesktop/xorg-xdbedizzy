@@ -480,14 +480,14 @@ int main(int argc, char *argv[])
     Visual              *visual;
     Colormap             cmap;
     XGCValues            gcvals;
+#ifdef USE_XPRINT
     void                *printtofile_handle = NULL; /* "context" when printing to file */
     const char          *printername        = NULL;  /* printer to query */
     const char          *toFile             = NULL;  /* output file (instead of printer) */
-#ifdef USE_XPRINT
     XPPrinterList        plist              = NULL;  /* list of printers */
     int                  plist_count;                /* number of entries in |plist|-array */
-#endif
     unsigned short       dummy;
+#endif
     Bool                 use_threadsafe_api = True;
 
     ProgramName = argv[0];

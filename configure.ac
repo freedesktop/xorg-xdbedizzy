@@ -26,32 +26,24 @@ AC_INIT(xdbedizzy,[1.0.2], [https://bugs.freedesktop.org/enter_bug.cgi?product=x
 AM_INIT_AUTOMAKE([dist-bzip2])
 AM_MAINTAINER_MODE
 
+# Require xorg-macros: XORG_CWARNFLAGS, XORG_CHANGELOG
+m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.2 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.2)
+
 AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
 AC_PROG_INSTALL
 
-# Boiler plate xprint checks
+XORG_CWARNFLAGS
 
-AC_ARG_ENABLE(xprint, AC_HELP_STRING([--enable-xprint],
-				     [Enable XPrint support]),
-	      [use_xprint=$enableval],[use_xprint=no])
-
-# Checks for pkg-config packages
-
-if test "x$use_xprint" = "xyes"; then
-   xprintmodules="xprintutil xp xau"
-   AC_DEFINE(USE_XPRINT, 1, [Define to enable Xprint])
-else
-  xprintmodules=""
-fi
-
-PKG_CHECK_MODULES(XDBEDIZZY, $xprintmodules xext x11)
-
+PKG_CHECK_MODULES(XDBEDIZZY, xext x11)
+XDBEDIZZY_CFLAGS="$CWARNFLAGS $XDBEDIZZY_CFLAGS"
 AC_SUBST(XDBEDIZZY_CFLAGS)
 AC_SUBST(XDBEDIZZY_LIBS)
 
 XORG_MANPAGE_SECTIONS
 XORG_RELEASE_VERSION
+XORG_CHANGELOG
 
 AC_OUTPUT([Makefile])
