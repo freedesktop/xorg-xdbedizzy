@@ -33,7 +33,6 @@
  * Original dizzy program written by Mark Kilgard.
  *
  * Adapted to use DBE for double buffering by Allen Leinwand, 2/24/1995 .
- * Print support added by Roland Mainz, 10/18/2004
  *
  */
 
@@ -44,9 +43,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/Xdbe.h>
-#ifdef USE_XPRINT
-#include <X11/XprintUtil/xprintutil.h>
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -65,9 +61,6 @@ static char             *ProgramName   = NULL;
 static Display          *dpy           = NULL;
 static Screen           *screen        = NULL;
 static int               screennum     = -1;
-#ifdef USE_XPRINT
-static XPContext         pcontext      = None; /* Xprint context */
-#endif
 static XRectangle        winrect       = { 0 };
 static unsigned long     c_black, c_pink, c_green, c_orange, c_blue;
 static Window            win           = None;
@@ -79,15 +72,6 @@ static float             delta         = 0.05;
 static float             speed         = 20.0;
 static Bool              paused        = False;
 static Bool              manual_paused = False;
-#ifdef USE_XPRINT
-static int               xp_event_base,         /* XpExtension even base   */
-                         xp_error_base;         /* XpExtension error base  */
-static long              dpi_x         = 0L,    /* Current page resolution */
-                         dpi_y         = 0L;    
-static int               numPages      = 5,     /* Numer of pages to print */
-                         currNumPages  = 0;     /* Current page number */
-static Bool              doPrint       = False; /* Print to printer ? */
-#endif
 
 /* Default values for unspecified command line arguments */
 static char             *display_name  = NULL;
@@ -103,12 +87,6 @@ static VisualID          visid         = 0;
 static const char *help_message[] = {
 "  where options include:",
 "    -display host:dpy       X server connection to use.",
-#ifdef USE_XPRINT
-"    -print                  Use printer instead of video card for output.",
-"    -printer printername    Name of printer to use.",
-"    -printfile printername  Output file for print job.",
-"    -numpages count         Number of pages to print.",
-#endif
 "    -delta dlt              Rotate <dlt> per frame (video) or page (printer).",
 "    -class classname        Class of visual to use.",
 "    -depth n                Depth of visual to use.",
@@ -318,11 +296,7 @@ void main_loop(void)
 
         /* When we print we only render on Expose events and bump
          * |rotation| when the page number changes */                 
-        if (!paused && !manual_paused
-#ifdef USE_XPRINT
-	    && !doPrint
-#endif
-	    ) {
+        if (!paused && !manual_paused) {
             pending = XEventsQueued(dpy, QueuedAfterFlush);
             if (pending == 0) {
                 do {
@@ -345,60 +319,7 @@ void main_loop(void)
 
         XNextEvent(dpy, &event);
 
-#ifdef USE_XPRINT
-        /* XpExtension event ? */
-        if( doPrint && 
-            (event.type == xp_event_base+XPPrintNotify) )
-        {
-            XPPrintEvent *pev = (XPPrintEvent *)&event;
-
-            switch( pev->detail ) {
-                case XPStartJobNotify:
-                    Log(("XPStartJobNotify: Starting first page...\n"));
-                    XpStartPage(dpy, win);
-                    break;
-                case XPEndJobNotify:
-                    Log(("XPEndJobNotify: Job done..."));
-                    /* Job done... */
-                    done = True;
-                    break;
-                case XPStartDocNotify:
-                    Log(("XPStartJobNotify: Nop\n"));
-                    break;
-                case XPEndDocNotify:
-                    Log(("XPEndDocNotify: Nop\n"));
-                    break;
-                case XPStartPageNotify:
-                    /* XpStartPage() will automatically trigger an Expose event */
-
-                    Log(("XPStartPageNotify: Page end reached.\n"));
-                    XpEndPage(dpy);
-                    break;
-                case XPEndPageNotify:
-                    /* next page or exit */
-                    currNumPages++;
-                    
-                    rotation = rotation + delta;
-
-                    if( currNumPages < numPages ) {
-                      Log(("Starting next page (%d)...\n", currNumPages));
-                      XpStartPage(dpy, win);
-                    }
-                    else
-                    {
-                      Log(("XPEndPageNotify: Finishing job...\n"));
-                      XpEndJob(dpy);
-                    }
-                    break;
-                default:
-                    Log(("--> other XPPrintEvent event, detail=%x\n", (int)pev->detail));
-                    break;
-            }
-        }
-        else
-#endif
-        {
-            switch (event.type) {
+	switch (event.type) {
                 case MapNotify:
                     Log(("MapNotify: resuming...\n"));
                     paused = False;
@@ -426,14 +347,8 @@ void main_loop(void)
                 case Expose:
                     Log(("Expose: rendering.\n"));
 
-                    /* Swallow any extra Expose events (only needed for video
-                     * display, the Xprint server is non-interactive and
-                     * therefore cannot create extra Expose events caused
-                     * by user input) */
-#ifdef USE_XPRINT
-                    if (!doPrint)
-#endif
-                      while (XCheckTypedEvent(dpy, Expose, &event))
+                    /* Swallow any extra Expose events */
+                    while (XCheckTypedEvent(dpy, Expose, &event))
                         ;
 
                     redraw();
@@ -467,7 +382,6 @@ void main_loop(void)
                     winrect.width  = event.xconfigure.width;
                     winrect.height = event.xconfigure.height;
                     break;
-            }
         }
     }
 }
@@ -480,14 +394,6 @@ int main(int argc, char *argv[])
     Visual              *visual;
     Colormap             cmap;
     XGCValues            gcvals;
-#ifdef USE_XPRINT
-    void                *printtofile_handle = NULL; /* "context" when printing to file */
-    const char          *printername        = NULL;  /* printer to query */
-    const char          *toFile             = NULL;  /* output file (instead of printer) */
-    XPPrinterList        plist              = NULL;  /* list of printers */
-    int                  plist_count;                /* number of entries in |plist|-array */
-    unsigned short       dummy;
-#endif
     Bool                 use_threadsafe_api = True;
 
     ProgramName = argv[0];
@@ -503,32 +409,6 @@ int main(int argc, char *argv[])
             }
             display_name = argv[i];
         }
-#ifdef USE_XPRINT
-        else if (!strcmp(arg, "-print")) {
-            doPrint = True;
-        }
-        else if (!strcmp(arg, "-printer")) {
-            if (++i >= argc)
-               usage();
-            printername = argv[i];
-            doPrint = True;
-        }
-        else if (!strcmp(arg, "-printfile")) {
-            if (++i >= argc)
-                usage();
-            toFile = argv[i];
-            doPrint = True;
-        }
-        else if (!strcmp(arg, "-numpages")) {
-            if (++i >= argc)
-                usage();
-            errno = 0; /* reset errno to catch |atoi()|-errors */
-            numPages = atoi(argv[i]);
-            if ((numPages <= 0) || (errno != 0))
-                usage();
-            doPrint = True;
-        }
-#endif
         else if (!strcmp(arg, "-delta")) {
             if (++i >= argc)
                 usage();
@@ -613,13 +493,6 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifdef USE_XPRINT
-    /* Display and printing at the same time not implemented */
-    if (doPrint && display_name) {
-        usage();
-    }
-#endif
-
     if (use_threadsafe_api) {
         if (!XInitThreads()) {
             fprintf(stderr, "%s: XInitThreads() failure.\n", ProgramName);
@@ -627,86 +500,6 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifdef USE_XPRINT
-    if (doPrint) {
-        plist = XpuGetPrinterList(printername, &plist_count);
-
-        if (!plist) {
-            fprintf(stderr, "%s:  no printers found for printer spec \"%s\".\n",
-                    ProgramName, NULLSTR(printername));
-            return EXIT_FAILURE;
-        }
-
-        printername = plist[0].name;
-
-        Log(("Using printer '%s'\n", printername));
-
-        if (XpuGetPrinter(printername, &dpy, &pcontext) != 1) {
-            fprintf(stderr, "%s: Cannot open printer '%s'\n", ProgramName, printername);
-            return EXIT_FAILURE;
-        }
-        
-        if (synchronous) {
-            Log(("Running in synchronous X mode.\n"));
-            XSynchronize(dpy, True);
-        }
-
-        if (XpQueryExtension(dpy, &xp_event_base, &xp_error_base) == False) {
-            fprintf(stderr, "%s: XpQueryExtension() failed.\n", ProgramName);
-            XpuClosePrinterDisplay(dpy, pcontext);
-            return EXIT_FAILURE;
-        }
-
-        /* Listen to XP(Start|End)(Job|Doc|Page)Notify events).
-         * This is mandatory as Xp(Start|End)(Job|Doc|Page) functions are _not_ 
-         * syncronous !!
-         * Not waiting for such events may cause that subsequent data may be 
-         * destroyed/corrupted!!
-         */
-        XpSelectInput(dpy, pcontext, XPPrintMask);
-
-        /* Set job title */
-        XpuSetJobTitle(dpy, pcontext, "xdbedizzy for Xprint");
-
-        /* Set print context
-         * Note that this modifies the available fonts, including builtin printer prints.
-         * All XListFonts()/XLoadFont() stuff should be done _after_ setting the print 
-         * context to obtain the proper fonts.
-         */ 
-        XpSetContext(dpy, pcontext);
-
-        /* Get default printer reolution */   
-        if (XpuGetResolution(dpy, pcontext, &dpi_x, &dpi_y) != 1) {
-            fprintf(stderr, "%s: No default resolution for printer '%s'.\n",
-            ProgramName, printername);
-            XpuClosePrinterDisplay(dpy, pcontext);
-            return EXIT_FAILURE;
-        }
-
-        if (toFile) {
-            Log(("starting job (to file '%s').\n", toFile));
-            printtofile_handle = XpuStartJobToFile(dpy, pcontext, toFile);
-            if( !printtofile_handle ) {
-               fprintf(stderr, "%s: Error: %s while trying to print to file.\n", 
-                       ProgramName, strerror(errno));
-               XpuClosePrinterDisplay(dpy, pcontext);
-               return EXIT_FAILURE;
-            }
-        }
-        else
-        {
-            Log(("starting job.\n"));
-            XpuStartJobToSpooler(dpy);    
-        }
-
-        screen = XpGetScreenOfContext(dpy, pcontext);
-        screennum = XScreenNumberOfScreen(screen);
-
-        /* Obtain some info about page geometry */
-        XpGetPageDimensions(dpy, pcontext, &dummy, &dummy, &winrect);
-    }
-    else
-#endif
     {
         dpy = XOpenDisplay(display_name);
         if (dpy == NULL) {
@@ -722,18 +515,11 @@ int main(int argc, char *argv[])
 
         screen = XDefaultScreenOfDisplay(dpy);
         screennum = XScreenNumberOfScreen(screen);
-#ifdef USE_XPRINT
-        pcontext = None;
-#endif
 
         winrect.x      = 10;
         winrect.y      = 10;
         winrect.width  = 400;
         winrect.height = 400;
-
-#ifdef USE_XPRINT
-        dpi_x = dpi_y = 100L; /* hack-style - but enougth for our needs */
-#endif
     }
     
     if (do_db) {
@@ -798,11 +584,7 @@ int main(int argc, char *argv[])
 
     /* Create GCs, one per color (to avoid pipeline flushing
      * when the GC is changed) */
-#ifdef USE_XPRINT
-    gcvals.line_width = (8L * ((dpi_x+dpi_y)/2L)) / 100L; /* scale line with DPI */
-#else
     gcvals.line_width = 8L;
-#endif
     
     gcvals.cap_style  = CapRound;
 #define CREATECOLORGC(cl) (gcvals.foreground = (cl), \
@@ -818,55 +600,8 @@ int main(int argc, char *argv[])
 
     main_loop();
 
-#ifdef USE_XPRINT
-    if (doPrint) {
-        char *scr;
-        
-        /* End the print job - the final results are sent by the X print
-         * server to the spooler sub system.
-         */
-        Log(("finishing print job.\n"));
-
-        /* Job completed, check if there are any messages from the spooler command */
-        scr = XpGetOneAttribute(dpy, pcontext, XPJobAttr, "xp-spooler-command-results");
-        if( scr )
-        {
-          if( strlen(scr) > 0 )
-          {
-            const char *msg = XpuCompoundTextToXmb(dpy, scr);
-            if( msg )
-            {
-              Msg(("Spooler command returned:\n%s", msg));
-              XpuFreeXmbString(msg);
-            }
-            else
-            {
-              Msg(("Spooler command returned (unconverted):\n%s", scr));
-            }
-          }
-
-          XFree((void *)scr);
-        }
-
-        if (toFile) {
-           if (XpuWaitForPrintFileChild(printtofile_handle) != XPGetDocFinished) {
-              fprintf(stderr, "%s: Error while printing to file.\n", ProgramName);
-              XpuClosePrinterDisplay(dpy, pcontext);
-              return EXIT_FAILURE;
-           }
-        }
-
-        XDestroyWindow(dpy, win);
-        XpuClosePrinterDisplay(dpy, pcontext);
-
-        XpuFreePrinterList(plist);
-    }
-    else
-#endif
-    {
-        XDestroyWindow(dpy, win);
-        XCloseDisplay(dpy);
-    }
+    XDestroyWindow(dpy, win);
+    XCloseDisplay(dpy);
     
     Log(("Done."));
 

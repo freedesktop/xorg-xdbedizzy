@@ -54,37 +54,6 @@ manual volume numbers.
 
     </cmdsynopsis>
 
-    <!-- printer mode -->
-    <cmdsynopsis>
-      <command>xdbedizzy</command>
-
-      <arg><option>-print</option></arg>
-
-      <arg><option>-printer <replaceable>printername</replaceable></option></arg>
-
-      <arg><option>-printfile <replaceable>file</replaceable></option></arg>
-
-      <arg><option>-delta <replaceable>dlt</replaceable></option></arg>
-
-      <arg><option>-class <replaceable>visclass</replaceable></option></arg>
-
-      <arg><option>-depth <replaceable>visdepth</replaceable></option></arg>
-
-      <arg><option>-visid <replaceable>visualid</replaceable></option></arg>
-
-      <arg><option>-list</option></arg>
-
-      <arg><option>-nodb</option></arg>
-
-      <arg><option>-help</option></arg>
-
-      <arg><option>-sync</option></arg>
-
-      <arg><option>-spokes <replaceable>n</replaceable></option></arg>
-
-      <arg><option>-verbose</option></arg>
-   
-    </cmdsynopsis>
   </refsynopsisdiv>
 
   <refsect1>
@@ -106,60 +75,6 @@ manual volume numbers.
         <listitem>
           <para>
             This option specifies the X server to contact.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><option>-print</option>
-        </term>
-        <listitem>
-          <para>
-            Switches to printer output (default is video output).
-            If no other printer arguments are given the default printer
-            is being used.
-          </para>
-        </listitem>
-      </varlistentry>
-      
-      <varlistentry>
-        <term><option>-printer <replaceable>printername</replaceable></option>
-        </term>
-        <listitem>
-          <para>
-            This option specifies the Xprint printer to contact.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><option>-printfile <replaceable>filename</replaceable></option>
-        </term>
-        <listitem>
-          <para>
-            Redirects the PDL (Printer Desktoption Language, usually
-            Postscript, PDF, PCL, etc.) stream to the specified file.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><option>-numpages <replaceable>count</replaceable></option>
-        </term>
-        <listitem>
-          <para>
-            Number of pages to print. Default is 5.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><option>-delta <replaceable>dlt</replaceable></option>
-        </term>
-        <listitem>
-          <para>
-            Delta value used to rotate the scene for each frame (video output)
-            or page (printer output).
           </para>
         </listitem>
       </varlistentry>
@@ -240,7 +155,7 @@ manual volume numbers.
         <listitem>
           <para>
             Defines the time to delay between frames as delay=2sec/speed.
-            Default value is 20. This option is ignored in print mode.
+            Default value is 20.
           </para>
         </listitem>
       </varlistentry>
@@ -286,7 +201,6 @@ manual volume numbers.
         <member><citerefentry><refentrytitle>XdbeGetVisualInfo</refentrytitle><manvolnum>__libmansuffix__</manvolnum></citerefentry></member>
         <member><citerefentry><refentrytitle>XdbeAllocateBackBufferName</refentrytitle><manvolnum>__libmansuffix__</manvolnum></citerefentry></member>
         <member><citerefentry><refentrytitle>X</refentrytitle><manvolnum>__miscmansuffix__</manvolnum></citerefentry></member>
-        <member><citerefentry><refentrytitle>Xprint</refentrytitle><manvolnum>__miscmansuffix__</manvolnum></citerefentry></member>
         <member><citerefentry><refentrytitle>Xserver</refentrytitle><manvolnum>__appmansuffix__</manvolnum></citerefentry></member>
       </simplelist>
     </para>
@@ -301,18 +215,6 @@ manual volume numbers.
         </term>
         <listitem>
 	    <para><envar>DISPLAY</envar> must be set to get the default host and display to use.
-	  </para>
-	</listitem>
-      </varlistentry>
-      
-      <varlistentry>
-        <term><envar>XPSERVERLIST</envar>
-        </term>
-        <listitem>
-	    <para><envar>XPSERVERLIST</envar> must be set for the <option>-printer</option> option
-	    identifying the available Xprint servers.
-            See <citerefentry><refentrytitle>Xprint</refentrytitle><manvolnum>__miscmansuffix__</manvolnum></citerefentry>
-	    for more details.
 	  </para>
 	</listitem>
       </varlistentry>
