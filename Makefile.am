@@ -21,7 +21,7 @@
 
 bin_PROGRAMS = xdbedizzy
 
-xdbedizzy_CFLAGS = $(XDBEDIZZY_CFLAGS) $(EXTRA)
+AM_CFLAGS = $(CWARNFLAGS) $(XDBEDIZZY_CFLAGS) $(EXTRA)
 xdbedizzy_LDADD = $(XDBEDIZZY_LIBS) -lm
 
 xdbedizzy_SOURCES =	\
@@ -61,7 +61,7 @@ MAN_SUBSTS = \
 SUFFIXES = .$(APP_MAN_SUFFIX) .man
 
 .man.$(APP_MAN_SUFFIX):
-	sed $(MAN_SUBSTS) < $< > $@
+	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@
 
 EXTRA_DIST += ChangeLog
 MAINTAINERCLEANFILES = ChangeLog
