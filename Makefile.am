@@ -30,7 +30,7 @@ xdbedizzy_SOURCES =	\
 appman_PRE = \
         xdbedizzy.man
 
-EXTRA_DIST = xdbedizzy.sgml
+EXTRA_DIST = xdbedizzy.xml
 
 appmandir = $(APP_MAN_DIR)
 

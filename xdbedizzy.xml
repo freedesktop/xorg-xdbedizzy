@@ -96,7 +96,7 @@ manual volume numbers.
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>-depth <replaceable>depth</replaceable></option>
         </term>
@@ -117,7 +117,7 @@ manual volume numbers.
           </para>
         </listitem>
       </varlistentry>
-                             
+
       <varlistentry>
         <term><option>-list</option>
         </term>
@@ -138,7 +138,7 @@ manual volume numbers.
           </para>
         </listitem>
       </varlistentry>
-      
+
       <varlistentry>
         <term><option>-help</option>
         </term>
@@ -234,7 +234,7 @@ manual volume numbers.
     <title>AUTHOR</title>
 
     <para>
-      <simplelist>  
+      <simplelist>
         <member><othercredit><firstname>Mark</firstname> <surname>Kilgard</surname></othercredit></member>
         <member><othercredit><firstname>Allen</firstname> <surname>Leinwand</surname></othercredit></member>
         <member><othercredit><firstname>Roland</firstname> <surname>Mainz</surname> <affiliation><orgname>University Giessen</orgname></affiliation></othercredit></member>
