@@ -14,48 +14,48 @@ xdbedizzy \- demo of DBE creating a double buffered spinning scene
 xdbedizzy is a demo of DBE creating a double
 buffered spinning scene.
 .SH OPTIONS
-.TP 
-\fB\-display \fIhost:dpy\fB\fR 
+.TP
+\fB\-display \fIhost:dpy\fB\fR
 This option specifies the X server to contact.
-.TP 
-\fB\-class \fIvisclass\fB\fR 
+.TP
+\fB\-class \fIvisclass\fB\fR
 Name of visual to choose. Valid values are
 TrueColor, DirectColor, PseudoColor, StaticColor, Grayscale, StaticGray
-.TP 
-\fB\-depth \fIdepth\fB\fR 
+.TP
+\fB\-depth \fIdepth\fB\fR
 Depth of visual to use.
-.TP 
-\fB\-visid \fIvisualid\fB\fR 
+.TP
+\fB\-visid \fIvisualid\fB\fR
 Visual ID to use (ignore \fB\-class\fR,
 \fB\-depth\fR).
-.TP 
-\fB\-list\fR 
+.TP
+\fB\-list\fR
 List double buffer capable visuals.
-.TP 
-\fB\-nodb\fR 
+.TP
+\fB\-nodb\fR
 Single buffer (ignore \fB\-class\fR,
 \fB\-depth\fR, \fB\-visid\fR).
-.TP 
-\fB\-help\fR 
+.TP
+\fB\-help\fR
 Prints usage and exists.
-.TP 
-\fB\-speed \fIvalue\fB\fR 
+.TP
+\fB\-speed \fIvalue\fB\fR
 Defines the time to delay between frames as delay=2sec/speed.
 Default value is 20.
-.TP 
-\fB\-sync\fR 
+.TP
+\fB\-sync\fR
 Use synchronous X connection.
-.TP 
-\fB\-spokes \fIvalue\fB\fR 
+.TP
+\fB\-spokes \fIvalue\fB\fR
 Specify number of spokes to draw. The default value is 12.
-.TP 
-\fB\-verbose\fR 
+.TP
+\fB\-verbose\fR
 Print verbose output.
 .SH "SEE ALSO"
 \fBDBE\fR(__libmansuffix__), \fBXdbeSwapBuffers\fR(__libmansuffix__), \fBXdbeGetVisualInfo\fR(__libmansuffix__), \fBXdbeAllocateBackBufferName\fR(__libmansuffix__), \fBX\fR(__miscmansuffix__), \fBXserver\fR(__appmansuffix__)
 .SH ENVIRONMENT
-.TP 
-\fBDISPLAY\fR 
+.TP
+\fBDISPLAY\fR
 \fBDISPLAY\fR must be set to get the default host and display to use.
 .SH AUTHOR
 
