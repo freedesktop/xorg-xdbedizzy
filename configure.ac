@@ -38,4 +38,7 @@ XORG_DEFAULT_OPTIONS
 
 PKG_CHECK_MODULES(XDBEDIZZY, xext x11)
 
-AC_OUTPUT([Makefile])
+AC_CONFIG_FILES([
+	Makefile
+	man/Makefile])
+AC_OUTPUT
